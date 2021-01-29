@@ -1,6 +1,6 @@
 # Disclaimer
-*** I am not responsible for damage caused by the use of this script. ***
-*** Only use this script if you fully understand what the script does. ***
+***I am not responsible for damage caused by the use of this script.***
+***Only use this script if you fully understand what the script does.***
 
 - - - -
 
