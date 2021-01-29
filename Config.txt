@@ -24,6 +24,8 @@
 /ip dhcp-server network add address=192.168.1.0/24 dns-server=192.168.1.1 gateway=192.168.1.1
 /ip dns set allow-remote-requests=yes servers=9.9.9.9,1.1.1.1
 /ip firewall address-list add address=192.168.1.0/24 list=LAN
+/ip firewall address-list add address=upgrade.mikrotik.com list=MT_UPDATE
+/ip firewall address-list add address=download.mikrotik.com list=MT_UPDATE
 /ip firewall filter add action=accept chain=forward comment="Allow Established&Related Forward Traffic" connection-state=established,related
 /ip firewall filter add action=drop chain=forward comment="DROP Invalid Forward Traffic" connection-state=invalid
 /ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN src-address-list=LAN
@@ -39,7 +41,8 @@
 /ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing dns traffic from the router" dst-port=53 protocol=tcp
 /ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing dns traffic from the router" dst-port=53 protocol=udp
 /ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing NTP traffic from the router" dst-port=123 protocol=udp
-/ip firewall raw add action=drop chain=OUT_WAN comment="Drop all outgoing traffic from the router"
+/ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing NTP traffic from the router" dst-address-list=MT_UPDATE
+/ip firewall raw add action=drop chain=OUT_WAN comment="Drop all outgoing traffic from the router" log=yes
 /ip firewall service-port set ftp disabled=yes
 /ip firewall service-port set tftp disabled=yes
 /ip firewall service-port set irc disabled=yes
