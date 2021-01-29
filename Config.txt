@@ -23,13 +23,17 @@
 /ip dhcp-client add disabled=no interface=BR_WAN
 /ip dhcp-server network add address=192.168.1.0/24 dns-server=192.168.1.1 gateway=192.168.1.1
 /ip dns set allow-remote-requests=yes
+/ip firewall address-list add address=192.168.1.0/24 list=LAN
+/ip firewall filter add action=accept chain=forward comment="Allow Established&Related Traffic" connection-state=established,related
 /ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN
 /ip firewall raw add action=jump chain=prerouting comment="Jump Winbox traffic to Winbox Chain" dst-port=8291 jump-target=WINBOX protocol=tcp
-/ip firewall raw add action=jump chain=prerouting comment="Jump DNS traffic to EXTERNAL_DNS Chain" in-interface=BR_WAN jump-target=EXTERNAL_DNS
+/ip firewall raw add action=jump chain=prerouting comment="Jump TCP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=tcp
+/ip firewall raw add action=jump chain=prerouting comment="Jump UDP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=udp
+/ip firewall raw add action=drop chain=prerouting comment="Drop Traffic on LAN Interface if not in the LAN ip range." in-interface=BR_LAN src-address-list=!LAN
 /ip firewall raw add action=accept chain=WINBOX comment="Accept Winbox traffic on Management Bridge" in-interface=BR_MNGT
 /ip firewall raw add action=drop chain=WINBOX comment="Drop Winbox traffic if not Management Bridge" in-interface=!BR_MNGT
-/ip firewall raw add action=drop chain=EXTERNAL_DNS comment="Drop DNS UDP Traffic" dst-port=53 protocol=udp
-/ip firewall raw add action=drop chain=EXTERNAL_DNS comment="Drop DNS TCP Traffic" dst-port=53 protocol=tcp
+/ip firewall raw add action=drop chain=DNS comment="Drop DNS UDP Traffic" dst-port=53 in-interface=BR_WAN protocol=udp
+/ip firewall raw add action=drop chain=DNS comment="Drop DNS TCP Traffic" dst-port=53 in-interface=BR_WAN protocol=tcp
 /ip firewall service-port set ftp disabled=yes
 /ip firewall service-port set tftp disabled=yes
 /ip firewall service-port set irc disabled=yes
