@@ -5,9 +5,9 @@
 - - - -
 
 # Setup
-First clear the entire routerboard and then connect a ethernet cable to the last ethernetport.
-Then add the config via the terminal.
-** Do not forget to set the admin password **
+First clear the entire routerboard and then connect a ethernet cable to the last ethernetport.  
+Then add the config via the terminal.  
+**Do not forget to set the admin password**
 
 ## WAN
 The first interface is seen as the WAN Interface.
