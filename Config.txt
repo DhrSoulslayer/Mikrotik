@@ -12,12 +12,12 @@
 /interface bridge port add bridge=BR_WAN interface=ether1 multicast-router=disabled
 /interface bridge port add bridge=BR_LAN interface=ether2 multicast-router=disabled
 /interface bridge port add bridge=BR_LAN interface=ether3 multicast-router=disabled
+/interface bridge settings set use-ip-firewall=yes
 /interface list member add interface=BR_WAN list=WAN
 /interface list member add interface=BR_LAN list=LAN
 /interface list member add interface=BR_MNGT list=MNGT
 /ip address add address=192.168.254.254/24 interface=BR_MNGT network=192.168.254.0
 /ip dhcp-client add disabled=no interface=BR_WAN
-/ip dhcp-client add add-default-route=no disabled=no interface=BR_MNGT use-peer-dns=no use-peer-ntp=no
 /ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN
 /ip firewall raw add action=jump chain=prerouting comment="Jump Winbox verkeer naar Winbox Chain" dst-port=8291 jump-target=WINBOX protocol=tcp
 /ip firewall raw add action=accept chain=WINBOX comment="Accepteer Winbox verkeer op BR_MNGT" in-interface=BR_MNGT
