@@ -26,7 +26,7 @@
 /ip firewall address-list add address=192.168.1.0/24 list=LAN
 /ip firewall filter add action=accept chain=forward comment="Allow Established&Related Forward Traffic" connection-state=established,related
 /ip firewall filter add action=drop chain=forward comment="DROP Invalid Forward Traffic" connection-state=invalid
-/ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN
+/ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN src-address-list=LAN
 /ip firewall raw add action=jump chain=prerouting comment="Jump TCP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=tcp
 /ip firewall raw add action=jump chain=prerouting comment="Jump UDP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=udp
 /ip firewall raw add action=jump chain=prerouting comment="Jump Winbox traffic to Winbox Chain" dst-port=8291 jump-target=WINBOX protocol=tcp
