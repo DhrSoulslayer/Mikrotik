@@ -26,8 +26,11 @@
 /ip firewall address-list add address=192.168.1.0/24 list=LAN
 /ip firewall address-list add address=upgrade.mikrotik.com list=MT_UPDATE
 /ip firewall address-list add address=download.mikrotik.com list=MT_UPDATE
-/ip firewall filter add action=accept chain=forward comment="Allow Established&Related Forward Traffic" connection-state=established,related
-/ip firewall filter add action=drop chain=forward comment="DROP Invalid Forward Traffic" connection-state=invalid
+/ip firewall filter add action=accept chain=input comment="Allow Established&Related Input Traffic" connection-state=established,related in-interface=BR_WAN
+/ip firewall filter add action=accept chain=input comment="Allow ICMP Input Traffic" in-interface=BR_WAN protocol=icmp
+/ip firewall filter add action=drop chain=input comment="Drop Invalid Input Traffic" connection-state=invalid in-interface=BR_WAN
+/ip firewall filter add action=accept chain=forward comment="Allow Established&Related Forward Traffic" connection-state=established,related in-interface=BR_WAN
+/ip firewall filter add action=drop chain=forward comment="Drop Invalid Forward Traffic" connection-state=invalid in-interface=BR_WAN
 /ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN src-address-list=LAN
 /ip firewall raw add action=jump chain=prerouting comment="Jump TCP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=tcp
 /ip firewall raw add action=jump chain=prerouting comment="Jump UDP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=udp
