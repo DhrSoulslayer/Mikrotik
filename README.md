@@ -1,19 +1,20 @@
 # Disclaimer
-***Ik ben niet verantwoordelijk voor schade ontstaan door het gebruik van dit script.***
-***Gebruik dit script alleen als je zelf volledig begrijpt wat het script doet.***
+*** I am not responsible for damage caused by the use of this script. ***
+*** Only use this script if you fully understand what the script does. ***
 
 - - - -
 
 
 ## WAN
-De eerste interface wordt gezien als WAN Interface.
-Deze zit in een bridge en op de bridge zitten de firewall regels.
-Ook zit er op de brige een source nat met een masquarade regel.
+The first interface is seen as the WAN Interface.
+There is a bridge and the firewall rules are on the bridge.
+There is also a source nat with a masquerade rule on the brige for internet access.
 
 ## LAN
-De ethernet interfaces tussen de eerste en de laatste zitten in een bridge voor het LAN.
-Op de LAN Bridge draait een dhcp server voor LAN clients.
+The ethernet interfaces between the first and the last are in a bridge for the LAN.
+A dhcp server for LAN clients runs on the LAN Bridge.
 
 ## Management
-De laatste interface wordt gezien als management/configuratie interface. 
-Op deze interface kan het beheer gedaan worden en zijn ook de verschillende winbox services beschikbaar.
+The last interface is seen as a management / configuration interface.
+Management can be done on this interface and the various winbox services are also available. 
+Traffic between the LAN and Management networks is prohibit in the firewall.
