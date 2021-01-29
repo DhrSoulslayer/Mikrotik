@@ -54,6 +54,7 @@
 /ip service set ssh disabled=yes
 /ip service set api disabled=yes
 /ip service set api-ssl disabled=yes
+/system clock set time-zone-name=Europe/Amsterdam
 /system identity set name=RTR_1
 /tool mac-server set allowed-interface-list=MNGT
 /tool mac-server mac-winbox set allowed-interface-list=MNGT
