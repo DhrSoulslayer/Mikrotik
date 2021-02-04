@@ -26,12 +26,23 @@
 /ip firewall address-list add address=192.168.1.0/24 list=LAN
 /ip firewall address-list add address=upgrade.mikrotik.com list=MT_UPDATE
 /ip firewall address-list add address=download.mikrotik.com list=MT_UPDATE
+/ip firewall filter add action=drop chain=forward comment="Drop SSH Bruteforcers When SSH is forwarded to a LAN Host" dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_blacklist
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_blacklist address-list-timeout=2w chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_stage3
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_stage3 address-list-timeout=1m chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_stage2
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_stage2 address-list-timeout=1m chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_stage1
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_stage1 address-list-timeout=1m chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp
+/ip firewall filter add action=drop chain=forward comment="Drop RDP Bruteforcers When RDP is forwarded to a LAN Host" dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_blacklist
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_blacklist address-list-timeout=2w chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_stage3
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_stage3 address-list-timeout=1m chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_stage2
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_stage2 address-list-timeout=1m chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_stage1
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_stage1 address-list-timeout=1m chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp
 /ip firewall filter add action=accept chain=input comment="Allow Established&Related Input Traffic" connection-state=established,related in-interface=BR_WAN
 /ip firewall filter add action=accept chain=input comment="Allow ICMP Input Traffic" in-interface=BR_WAN protocol=icmp
 /ip firewall filter add action=drop chain=input comment="Drop Invalid Input Traffic" connection-state=invalid in-interface=BR_WAN
 /ip firewall filter add action=accept chain=forward comment="Allow Established&Related Forward Traffic" connection-state=established,related in-interface=BR_WAN
 /ip firewall filter add action=drop chain=forward comment="Drop Invalid Forward Traffic" connection-state=invalid in-interface=BR_WAN
 /ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN src-address-list=LAN
+/ip firewall raw add action=jump chain=prerouting comment="PortScan Detector" jump-target=PORTSCANNER protocol=tcp psd=12,3s,3,1
 /ip firewall raw add action=jump chain=prerouting comment="Jump TCP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=tcp
 /ip firewall raw add action=jump chain=prerouting comment="Jump UDP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=udp
 /ip firewall raw add action=jump chain=prerouting comment="Jump Winbox traffic to Winbox Chain" dst-port=8291 jump-target=WINBOX protocol=tcp
@@ -46,6 +57,8 @@
 /ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing NTP traffic from the router" dst-port=123 protocol=udp
 /ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing NTP traffic from the router" dst-address-list=MT_UPDATE
 /ip firewall raw add action=drop chain=OUT_WAN comment="Drop all outgoing traffic from the router" log=yes
+/ip firewall raw add action=drop chain=PORTSCANNER src-address-list=Portscanners
+/ip firewall raw add action=add-src-to-address-list address-list=Portscanners address-list-timeout=none-static chain=PORTSCANNER
 /ip firewall service-port set ftp disabled=yes
 /ip firewall service-port set tftp disabled=yes
 /ip firewall service-port set irc disabled=yes
