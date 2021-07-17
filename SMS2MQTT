@@ -1,0 +1,33 @@
+:local smsPhone;
+:local smsTimeStamp;
+:local smsMessage;
+:local smsContent;
+:local broker "Hydra"
+:local topic "scouting/SMS_Inbox"
+# Get System Identity #
+:local SystemID [/system identity get name];
+
+:log info "SMS to MQTT script started";
+# Set Receive Enabled, in case it was cleared by a router reboot #
+/tool sms set receive-enabled=yes;
+
+delay 2;
+:foreach i in=[/tool sms inbox find] do={
+
+:set smsPhone [/tool sms inbox get $i phone];
+:set smsTimeStamp [/tool sms inbox get $i timestamp];
+:set smsMessage [/tool sms inbox get $i message];
+:set smsContent "Router ID: $SystemID\nSMS Received from: $smsPhone\nDate&Time: $smsTimeStamp\nMessage: $smsMessage"; 
+/iot mqtt publish broker=$broker topic=$topic message=$smsContent;
+
+# Now remove the SMS from the inbox #
+/tool sms inbox remove $i;
+
+delay 10;
+
+}
+
+# clear Receive Enabled, so info channel can be used by other scripts #
+#/tool sms set receive-enabled=yes;
+
+:log info "SMS to MQTT script complete";
