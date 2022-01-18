@@ -1,0 +1,40 @@
+
+# Name of an existing MQTT broker that should be used for publishing
+:local broker "HA-MQTT"
+:local topic mikrotik/rb2011
+
+# Getting local system variables
+:local cpuLoad [/system resource get cpu-load]
+:local freeMemory [/system resource get free-memory]
+:local usedMemory ([/system resource get total-memory] - $freeMemory)
+:local rosVersion [/system package get value-name=version \
+    [/system package find where name ~ "^routeros"]]
+:local model [/system routerboard get value-name=model]
+:local serialNumber [/system routerboard get value-name=serial-number]
+:local health [/system health print as-value]
+:local supplyVoltage 0
+:local boardTemp 0
+:foreach entry in=$health do={
+    :if ($entry->"name" = "voltage") do={:set $supplyVoltage ($entry->"value")}
+    :if ($entry->"name" = "temperature") do={:set $boardTemp ($entry->"value")}
+}
+
+# Preparing MQTT Message into json format
+:local message \
+    "{\
+                \"model\":\"$model\",\
+                \"sn\":\"$serialNumber\",\
+                \"ros\":\"$rosVersion\",\
+                \"CPU-Load\":\"$cpuLoad\",\
+                \"Used-Memory\":\"$usedMemory\",\
+                \"Free-Memory\":\"$freeMemory\",\
+                \"Voltage\":\"$supplyVoltage\",\
+                \"CPU-Temp\":\"$boardTemp\"\
+    }"
+:log info "$message";
+:put ("[*] Total message size: $[:len $message] bytes")
+:put ("[*] Sending message to MQTT broker...")
+
+#Publish to MQTT Broker
+/iot mqtt publish broker=$broker topic=$topic message=$message
+:put ("[*] Done")
