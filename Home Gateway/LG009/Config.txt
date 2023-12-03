@@ -1,0 +1,88 @@
+#Build with RouterOS 7.12
+
+/interface bridge add name=BR_LAN
+/interface bridge add name=BR_WAN
+/interface list add name=WAN
+/interface list add name=LAN
+/interface wireless security-profiles set [ find default=yes ] supplicant-identity=MikroTik
+/ip pool add name=dhcp_pool0 ranges=192.168.2.100-192.168.2.250
+/ip dhcp-server add address-pool=dhcp_pool0 disabled=no interface=BR_LAN lease-time=30m name=dhcp1
+/interface bridge port add bridge=BR_WAN interface=sfp1 multicast-router=disabled
+/interface bridge port add bridge=BR_WAN interface=ether1 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether2 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether3 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether4 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether5 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether6 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether7 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether8 multicast-router=disabled
+/interface bridge settings set use-ip-firewall=yes
+/interface list member add interface=BR_WAN list=WAN
+/interface list member add interface=BR_LAN list=LAN
+/ip address add address=192.168.2.1/24 interface=BR_LAN network=192.168.2.0
+/ip dhcp-client add disabled=no interface=BR_WAN
+/ip dhcp-server network add address=192.168.2.0/24 dns-server=192.168.2.1 gateway=192.168.2.1
+/ip dns set allow-remote-requests=yes servers=9.9.9.9,1.1.1.1
+/ip firewall address-list add address=192.168.2.0/24 list=LAN
+/ip firewall address-list add address=upgrade.mikrotik.com list=MT_UPDATE
+/ip firewall address-list add address=download.mikrotik.com list=MT_UPDATE
+/ip firewall filter add action=drop chain=forward comment="Drop SSH Bruteforcers When SSH is forwarded to a LAN Host" dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_blacklist
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_blacklist address-list-timeout=2w chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_stage3
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_stage3 address-list-timeout=1m chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_stage2
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_stage2 address-list-timeout=1m chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp src-address-list=ssh_stage1
+/ip firewall filter add action=add-src-to-address-list address-list=ssh_stage1 address-list-timeout=1m chain=forward connection-state=new dst-port=22 in-interface=BR_WAN protocol=tcp
+/ip firewall filter add action=drop chain=forward comment="Drop RDP Bruteforcers When RDP is forwarded to a LAN Host" dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_blacklist
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_blacklist address-list-timeout=2w chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_stage3
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_stage3 address-list-timeout=1m chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_stage2
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_stage2 address-list-timeout=1m chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp src-address-list=RDP_stage1
+/ip firewall filter add action=add-src-to-address-list address-list=RDP_stage1 address-list-timeout=1m chain=forward connection-state=new dst-port=3389 in-interface=BR_WAN protocol=tcp
+/ip firewall filter add action=accept chain=input comment="Allow Established&Related Input Traffic" connection-state=established,related in-interface=BR_WAN
+/ip firewall filter add action=accept chain=input comment="Allow ICMP Input Traffic" in-interface=BR_WAN protocol=icmp
+/ip firewall filter add action=drop chain=input comment="Drop Invalid Input Traffic" connection-state=invalid in-interface=BR_WAN
+/ip firewall filter add action=accept chain=forward comment="Allow Established&Related Forward Traffic" connection-state=established,related in-interface=BR_WAN
+/ip firewall filter add action=drop chain=forward comment="Drop Invalid Forward Traffic" connection-state=invalid in-interface=BR_WAN
+/ip firewall nat add action=masquerade chain=srcnat out-interface=BR_WAN src-address-list=LAN
+/ip firewall raw add action=jump chain=prerouting comment="PortScan Detector" jump-target=PORTSCANNER protocol=tcp psd=12,3s,3,1
+/ip firewall raw add action=jump chain=prerouting comment="Jump TCP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=tcp
+/ip firewall raw add action=jump chain=prerouting comment="Jump UDP DNS traffic to DNS Chain" dst-port=53 jump-target=DNS protocol=udp
+/ip firewall raw add action=jump chain=prerouting comment="Jump Winbox traffic to Winbox Chain" dst-port=8291 jump-target=WINBOX protocol=tcp
+/ip firewall raw add action=drop chain=prerouting comment="Drop Traffic on LAN Interface if not in the LAN ip range." in-interface=BR_LAN src-address-list=!LAN
+/ip firewall raw add action=jump chain=output jump-target=OUT_WAN out-interface=BR_WAN
+/ip firewall raw add action=accept chain=WINBOX comment="Accept Winbox traffic on Management Bridge" in-interface=BR_LAN
+/ip firewall raw add action=drop chain=WINBOX comment="Drop Winbox traffic if not Management Bridge" in-interface=!BR_LAN
+/ip firewall raw add action=drop chain=DNS comment="Drop DNS UDP Traffic" dst-port=53 in-interface=BR_WAN protocol=udp
+/ip firewall raw add action=drop chain=DNS comment="Drop DNS TCP Traffic" dst-port=53 in-interface=BR_WAN protocol=tcp
+/ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing dns traffic from the router" dst-port=53 protocol=tcp
+/ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing dns traffic from the router" dst-port=53 protocol=udp
+/ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing NTP traffic from the router" dst-port=123 protocol=udp
+/ip firewall raw add action=accept chain=OUT_WAN comment="Allow outgoing NTP traffic from the router" dst-address-list=MT_UPDATE
+/ip firewall raw add action=drop chain=OUT_WAN comment="Drop all outgoing traffic from the router" log=yes
+/ip firewall raw add action=drop chain=PORTSCANNER src-address-list=Portscanners
+/ip firewall raw add action=add-src-to-address-list address-list=Portscanners address-list-timeout=none-static chain=PORTSCANNER
+/ip firewall service-port set ftp disabled=yes
+/ip firewall service-port set tftp disabled=yes
+/ip firewall service-port set irc disabled=yes
+/ip firewall service-port set h323 disabled=yes
+/ip firewall service-port set pptp disabled=yes
+/ip firewall service-port set udplite disabled=yes
+/ip firewall service-port set dccp disabled=yes
+/ip firewall service-port set sctp disabled=yes
+/ip service set telnet disabled=yes
+/ip service set ftp disabled=yes
+/ip service set www disabled=yes
+/ip service set ssh disabled=yes
+/ip service set api disabled=yes
+/ip service set api-ssl disabled=yes
+/system clock set time-zone-name=Europe/Amsterdam
+/system identity set name=RTR_1
+/tool mac-server set allowed-interface-list=LAN
+/tool mac-server mac-winbox set allowed-interface-list=LAN
+/tool mac-server ping set enabled=yes
+/ip service set telnet disabled=yes
+/ip service set ftp disabled=yes
+/ip service set www disabled=yes
+/ip service set ssh disabled=yes
+/ip service set api disabled=yes
+/ip service set api-ssl disabled=yes
+/system clock set time-zone-name=Europe/Amsterdam
+/system identity set name=RTR_1
