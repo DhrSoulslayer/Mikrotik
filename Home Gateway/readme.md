@@ -14,10 +14,5 @@ There is a bridge and the firewall rules are on the bridge.<br/>
 There is also a source nat with a masquerade rule on the brige for internet access.
 
 ## LAN
-The ethernet interfaces between the first and the last are in a bridge for the LAN.<br/>
+The ethernet interfaces remaining on the routerboard are in a bridge for the LAN.<br/>
 A dhcp server for LAN clients runs on the LAN Bridge.
-
-## Management
-The last interface is seen as a management / configuration interface.<br/>
-Management can be done on this interface and the various winbox services are also available.<br/>
-Traffic between the LAN and Management networks is prohibit in the firewall.
