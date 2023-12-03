@@ -2,7 +2,6 @@
 #Testing platform is a CHR within Virtualbox
 
 /interface bridge add name=BR_LAN
-/interface bridge add name=BR_MNGT
 /interface bridge add name=BR_WAN
 /interface list add name=WAN
 /interface list add name=LAN
@@ -10,15 +9,17 @@
 /interface wireless security-profiles set [ find default=yes ] supplicant-identity=MikroTik
 /ip pool add name=dhcp_pool0 ranges=192.168.1.100-192.168.1.250
 /ip dhcp-server add address-pool=dhcp_pool0 disabled=no interface=BR_LAN lease-time=30m name=dhcp1
-/interface bridge port add bridge=BR_MNGT interface=ether4 multicast-router=disabled
 /interface bridge port add bridge=BR_WAN interface=ether1 multicast-router=disabled
 /interface bridge port add bridge=BR_LAN interface=ether2 multicast-router=disabled
 /interface bridge port add bridge=BR_LAN interface=ether3 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether4 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether5 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether6 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether7 multicast-router=disabled
+/interface bridge port add bridge=BR_LAN interface=ether8 multicast-router=disabled
 /interface bridge settings set use-ip-firewall=yes
 /interface list member add interface=BR_WAN list=WAN
 /interface list member add interface=BR_LAN list=LAN
-/interface list member add interface=BR_MNGT list=MNGT
-/ip address add address=192.168.254.254/24 interface=BR_MNGT network=192.168.254.0
 /ip address add address=192.168.1.1/24 interface=BR_LAN network=192.168.1.0
 /ip dhcp-client add disabled=no interface=BR_WAN
 /ip dhcp-server network add address=192.168.1.0/24 dns-server=192.168.1.1 gateway=192.168.1.1
@@ -75,9 +76,9 @@
 /ip service set api-ssl disabled=yes
 /system clock set time-zone-name=Europe/Amsterdam
 /system identity set name=RTR_1
-/tool mac-server set allowed-interface-list=MNGT
-/tool mac-server mac-winbox set allowed-interface-list=MNGT
-/tool mac-server ping set enabled=no
+/tool mac-server set allowed-interface-list=LAN
+/tool mac-server mac-winbox set allowed-interface-list=LAN
+/tool mac-server ping set enabled=yes
 /ip service set telnet disabled=yes
 /ip service set ftp disabled=yes
 /ip service set www disabled=yes
@@ -86,6 +87,3 @@
 /ip service set api-ssl disabled=yes
 /system clock set time-zone-name=Europe/Amsterdam
 /system identity set name=RTR_1
-/tool mac-server set allowed-interface-list=MNGT
-/tool mac-server mac-winbox set allowed-interface-list=MNGT
-/tool mac-server ping set enabled=no
